@@ -19,16 +19,8 @@
 
 #include <algorithm>
 
-std::string hash_swap (std::string input) {
-    std::string output;
-    for (int i = 0; i < 32; i++) {
-        output += input[62-i*2];
-        output += input[62-i*2+1];
-    }
-    return  output;
-}
 /* ************************************************************************** */
-
+// This is flawed. I am working on an alternative.
 bool
 CAuxPow::check(const uint256& hashAuxBlock, const Consensus::Params& params) const
 {
@@ -39,10 +31,10 @@ CAuxPow::check(const uint256& hashAuxBlock, const Consensus::Params& params) con
         return error("Aux POW chain merkle branch too long");
 
     // Check that the chain merkle root is in the coinbase
-    uint256 rehashAuxBlock;
-    rehashAuxBlock.SetHex(hash_swap(hashAuxBlock.ToString()));
-    const uint256 nRootHash = CBlock::CheckMerkleBranch(SerializeHash(rehashAuxBlock), vChainMerkleBranch, nChainIndex);
+
+    const uint256 nRootHash = CBlock::CheckMerkleBranch(hashAuxBlock, vChainMerkleBranch, nChainIndex);
     std::vector<unsigned char> vchRootHash(nRootHash.begin(), nRootHash.end());
+    std::reverse(vchRootHash.begin(), vchRootHash.end()); // correct endian
     
     // Check that we are in the parent block merkle tree
     if (CBlock::CheckMerkleBranch(Hash(coinbaseTx.begin(), coinbaseTx.end()), vMerkleBranch, nIndex) != parentBlock.hashMerkleRoot) {
