@@ -75,6 +75,16 @@ public:
     {
         return parentBlock.GetPoWHash();
     }
+    
+    /**
+   * Calculate the expected index in the merkle tree.  This is also used
+   * for the test-suite.
+   * @param nNonce The coinbase's nonce value.
+   * @param nChainId The chain ID.
+   * @param h The merkle block height.
+   * @return The expected index for the aux hash.
+   */
+    static int getExpectedIndex(int nNonce, int nChainId, unsigned h);
 };
 
 #endif // BITCOIN_AUXPOW_H

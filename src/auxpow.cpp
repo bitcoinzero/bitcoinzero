@@ -56,5 +56,41 @@ CAuxPow::check(const uint256& hashAuxBlock, const Consensus::Params& params) con
     if (pcHead + sizeof(pchMergedMiningHeader) != pc)
         return error("Merged mining header is not just before chain merkle root");    
     
+    // Ensure we are at a deterministic point in the merkle leaves by hashing
+    // a nonce and our chain ID and comparing to the index.
+    pc += vchRootHash.size();
+    if (coinbaseTx.end() - pc < 8)
+        return error("Aux POW missing chain merkle tree size and nonce in parent coinbase");
+    
+    int nSize;
+    memcpy(&nSize, &pc[0], 4);
+    const unsigned merkleHeight = vChainMerkleBranch.size();
+    if (nSize != (1 << merkleHeight))
+        return error("Aux POW merkle branch size does not match parent coinbase");
+
+    int nNonce;
+    memcpy(&nNonce, &pc[4], 4);
+
+    if (nChainIndex != getExpectedIndex(nNonce, params.nAuxpowChainId, merkleHeight))
+        return error("Aux POW wrong index");
+
     return true;
+}
+
+int
+CAuxPow::getExpectedIndex(int nNonce, int nChainId, unsigned h)
+{
+    // Choose a pseudo-random slot in the chain merkle tree
+    // but have it be fixed for a size/nonce/chain combination.
+    //
+    // This prevents the same work from being used twice for the
+    // same chain while reducing the chance that two chains clash
+    // for the same slot.
+
+    unsigned rand = nNonce;
+    rand = rand * 1103515245 + 12345;
+    rand += nChainId;
+    rand = rand * 1103515245 + 12345;
+
+    return rand % (1 << h);
 }

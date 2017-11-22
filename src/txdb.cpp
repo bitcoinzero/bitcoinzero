@@ -319,6 +319,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 } else {
                     if (!CheckProofOfWork(pindexNew->hashBlockPoW, pindexNew->nBits, Params().GetConsensus()))
                         return error("LoadBlockIndex(): CheckProofOfWork failed: %s", pindexNew->ToString());
+                    // return error("LoadBlockIndex(): no auxpow in nVersion: %s", pindexNew->ToString());
                 }
                 
                 pcursor->Next();

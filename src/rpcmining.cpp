@@ -840,6 +840,7 @@ UniValue getauxblockbip22(const UniValue& params, bool fHelp)
 
         UniValue result(UniValue::VOBJ);
         result.push_back(Pair("hash", block.GetHash().GetHex()));
+        result.push_back(Pair("chainid", block.nVersion.GetChainId()));
         result.push_back(Pair("previousblockhash", block.hashPrevBlock.GetHex()));
         result.push_back(Pair("coinbasevalue", (int64_t)block.vtx[0].vout[0].nValue));
         result.push_back(Pair("bits", strprintf("%08x", block.nBits)));

@@ -60,8 +60,7 @@ public:
         nMaxTipAge = 24 * 60 * 60;
         nPruneAfterHeight = 100000;
 		
-        consensus.fAllowLegacyBlocks = false;
-        consensus.fAllowAuxPow = true;
+        consensus.nAuxpowChainId = 0xffff;
         
 		/**
          * Build the genesis block. Note that the output of its generation

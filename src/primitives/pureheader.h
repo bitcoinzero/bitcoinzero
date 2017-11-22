@@ -20,6 +20,9 @@ private:
     /* Modifiers to the version.  */
     static const int32_t VERSION_AUXPOW = (1 << 8);
 
+    /** Bits above are reserved for the auxpow chain ID.  */
+    static const int32_t VERSION_CHAIN_START = (1 << 16);
+    
     /** The version as integer.  Should not be accessed directly.  */
     int nVersion;
 
@@ -42,6 +45,25 @@ public:
         nVersion = 0;
     }
     
+     /**
+     * Extract the chain ID.
+     * @return The chain ID encoded in the version.
+     */
+    inline int32_t GetChainId() const
+    {
+        return nVersion >> 16;
+    }
+
+    /**
+     * Set the chain ID.  This is used for the test suite.
+     * @param ch The chain ID to set.
+     */
+    inline void SetChainId(int32_t chainId)
+    {
+        nVersion %= VERSION_CHAIN_START;
+        nVersion |= chainId * VERSION_CHAIN_START;
+    }
+
     /**
      * Extract the full version.  Used for RPC results and debug prints.
      * @return The full version.
