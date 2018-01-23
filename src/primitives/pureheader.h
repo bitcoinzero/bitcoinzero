@@ -19,7 +19,8 @@ class CBlockVersion
 private:
     /* Modifiers to the version.  */
     static const int32_t VERSION_AUXPOW = (1 << 8);
-
+    static const int32_t VERSION_AUXPOW_2 = (1 << 9);
+    
     /** Bits above are reserved for the auxpow chain ID.  */
     static const int32_t VERSION_CHAIN_START = (1 << 16);
     
@@ -93,6 +94,15 @@ public:
     }
 
     /**
+     * Check if the auxpow2 flag is set in the version.
+     * @return True iff this block version is marked as auxpow2.
+     */
+    inline bool IsAuxpow2() const
+    {
+        return nVersion & VERSION_AUXPOW_2;
+    }
+    
+    /**
      * Set the auxpow flag.  This is used for testing.
      * @param auxpow Whether to mark auxpow as true.
      */
@@ -105,14 +115,17 @@ public:
     }
 
     /**
-     * Check whether this is a "legacy" block without chain ID.
-     * @return True if it is.
+     * Set the auxpow2 flag.  This is used for testing.
+     * @param auxpow Whether to mark auxpow2 as true.
      */
-    inline bool IsLegacy() const
+    inline void SetAuxpow2(bool auxpow2)
     {
-        return nVersion == 1;
+        if (auxpow2)
+            nVersion |= VERSION_AUXPOW_2;
+        else
+            nVersion &= ~VERSION_AUXPOW_2;
     }
-
+    
     CBlockVersion& operator=(const CBlockVersion& other)
     {
         nVersion = other.nVersion;
@@ -151,7 +164,7 @@ public:
     uint256 hashMerkleRoot;
     uint32_t nTime;
     uint32_t nBits;
-    uint32_t  nNonce;
+    uint32_t nNonce;
 
     CPureBlockHeader()
     {

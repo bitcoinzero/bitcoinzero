@@ -35,7 +35,7 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         strNetworkID = "main";
-        strCurrencyUnits = "ZEC";
+        strCurrencyUnits = "BTZ";
         consensus.fCoinbaseMustBeProtected = true;
         consensus.nSubsidyHalvingInterval = 840000;
         consensus.nMajorityEnforceBlockUpgrade = 750;
@@ -47,21 +47,20 @@ public:
         consensus.nPowMaxAdjustDown = 32; // 32% adjustment down
         consensus.nPowMaxAdjustUp = 16; // 16% adjustment up
         consensus.nPowTargetSpacing = 2.5 * 60;        
-        consensus.fPowAllowMinDifficultyBlocks = false;
         /**
          * The message start string should be awesome! ⓩ❤
          */
-        pchMessageStart[0] = 0x24;
-        pchMessageStart[1] = 0xe9;
-        pchMessageStart[2] = 0x27;
-        pchMessageStart[3] = 0x64;
+        pchMessageStart[0] = 0x1c;
+        pchMessageStart[1] = 0xa7;
+        pchMessageStart[2] = 0xfe;
+        pchMessageStart[3] = 0xdd;
         vAlertPubKey = ParseHex("04b7ecf0baa90495ceb4e4090f6b2fd37eec1e9c85fac68a487f3ce11589692e4a317479316ee814e066638e1db54e37a10689b70286e6315b1087b6615d179264");
         nDefaultPort = 8083;
         nMaxTipAge = 24 * 60 * 60;
         nPruneAfterHeight = 100000;
 		
-        consensus.nAuxpowChainId = 0xffff;
-        
+        consensus.nAuxpowChainId = 0x0abc;
+        consensus.nSubAuxpowChainId = 478558;
 		/**
          * Build the genesis block. Note that the output of its generation
          * transaction cannot be spent since it did not originally exist in the
@@ -71,7 +70,7 @@ public:
          * >>> 'Zcash' + blake2s(b'The Economist 2016-10-29 Known unknown: Another crypto-currency is born. BTC#436254 0000000000000000044f321997f336d2908cf8c8d6893e88dbf067e2d949487d ETH#2521903 483039a6b6bd8bd05f0584f9a078d075e454925eb71c1f13eaff59b405a721bb DJIA close on 27 Oct 2016: 18,169.68').hexdigest()
          */
 
-        consensus.hashGenesisBlock.SetHex("ff6257b4859309c57766c10ce97900757489bf37fe2c561687805dbd47fa6dc9");
+        consensus.hashGenesisBlock.SetHex("a620ef36772e06c93cab2a3448be68beb89fcf39f354871125d9d950051071dd");
         
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -83,6 +82,8 @@ public:
         base58Prefixes[EXT_SECRET_KEY]     = boost::assign::list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();
         // guarantees the first character, when base58 encoded, is "z"
         base58Prefixes[ZCPAYMENT_ADDRRESS] = std::vector<unsigned char>(1,99);
+        // guarantees the first 4 characters, when base58 encoded, are "ZiVK"
+        base58Prefixes[ZCVIEWING_KEY]      = {0xA8,0xAB,0xD3};
         // guarantees the first character, when base58 encoded, is "S"
         base58Prefixes[ZCSPENDING_KEY]     = std::vector<unsigned char>(1,13);
         fMiningRequiresPeers = true;
@@ -93,54 +94,54 @@ public:
 
                 // Founders reward script expects a vector of 2-of-3 multisig addresses
         vFoundersRewardAddress = {
-            "t3Vz22vK5z2LcKEdg16Yv4FFneEL1zg9ojd", /* main-index: 0*/
-            "t3cL9AucCajm3HXDhb5jBnJK2vapVoXsop3", /* main-index: 1*/
-            "t3fqvkzrrNaMcamkQMwAyHRjfDdM2xQvDTR", /* main-index: 2*/
-            "t3TgZ9ZT2CTSK44AnUPi6qeNaHa2eC7pUyF", /* main-index: 3*/
-            "t3SpkcPQPfuRYHsP5vz3Pv86PgKo5m9KVmx", /* main-index: 4*/
-            "t3Xt4oQMRPagwbpQqkgAViQgtST4VoSWR6S", /* main-index: 5*/
-            "t3ayBkZ4w6kKXynwoHZFUSSgXRKtogTXNgb", /* main-index: 6*/
-            "t3adJBQuaa21u7NxbR8YMzp3km3TbSZ4MGB", /* main-index: 7*/
-            "t3K4aLYagSSBySdrfAGGeUd5H9z5Qvz88t2", /* main-index: 8*/
-            "t3RYnsc5nhEvKiva3ZPhfRSk7eyh1CrA6Rk", /* main-index: 9*/
-            "t3Ut4KUq2ZSMTPNE67pBU5LqYCi2q36KpXQ", /* main-index: 10*/
-            "t3ZnCNAvgu6CSyHm1vWtrx3aiN98dSAGpnD", /* main-index: 11*/
-            "t3fB9cB3eSYim64BS9xfwAHQUKLgQQroBDG", /* main-index: 12*/
-            "t3cwZfKNNj2vXMAHBQeewm6pXhKFdhk18kD", /* main-index: 13*/
-            "t3YcoujXfspWy7rbNUsGKxFEWZqNstGpeG4", /* main-index: 14*/
-            "t3bLvCLigc6rbNrUTS5NwkgyVrZcZumTRa4", /* main-index: 15*/
-            "t3VvHWa7r3oy67YtU4LZKGCWa2J6eGHvShi", /* main-index: 16*/
-            "t3eF9X6X2dSo7MCvTjfZEzwWrVzquxRLNeY", /* main-index: 17*/
-            "t3esCNwwmcyc8i9qQfyTbYhTqmYXZ9AwK3X", /* main-index: 18*/
-            "t3M4jN7hYE2e27yLsuQPPjuVek81WV3VbBj", /* main-index: 19*/
-            "t3gGWxdC67CYNoBbPjNvrrWLAWxPqZLxrVY", /* main-index: 20*/
-            "t3LTWeoxeWPbmdkUD3NWBquk4WkazhFBmvU", /* main-index: 21*/
-            "t3P5KKX97gXYFSaSjJPiruQEX84yF5z3Tjq", /* main-index: 22*/
-            "t3f3T3nCWsEpzmD35VK62JgQfFig74dV8C9", /* main-index: 23*/
-            "t3Rqonuzz7afkF7156ZA4vi4iimRSEn41hj", /* main-index: 24*/
-            "t3fJZ5jYsyxDtvNrWBeoMbvJaQCj4JJgbgX", /* main-index: 25*/
-            "t3Pnbg7XjP7FGPBUuz75H65aczphHgkpoJW", /* main-index: 26*/
-            "t3WeKQDxCijL5X7rwFem1MTL9ZwVJkUFhpF", /* main-index: 27*/
-            "t3Y9FNi26J7UtAUC4moaETLbMo8KS1Be6ME", /* main-index: 28*/
-            "t3aNRLLsL2y8xcjPheZZwFy3Pcv7CsTwBec", /* main-index: 29*/
-            "t3gQDEavk5VzAAHK8TrQu2BWDLxEiF1unBm", /* main-index: 30*/
-            "t3Rbykhx1TUFrgXrmBYrAJe2STxRKFL7G9r", /* main-index: 31*/
-            "t3aaW4aTdP7a8d1VTE1Bod2yhbeggHgMajR", /* main-index: 32*/
-            "t3YEiAa6uEjXwFL2v5ztU1fn3yKgzMQqNyo", /* main-index: 33*/
-            "t3g1yUUwt2PbmDvMDevTCPWUcbDatL2iQGP", /* main-index: 34*/
-            "t3dPWnep6YqGPuY1CecgbeZrY9iUwH8Yd4z", /* main-index: 35*/
-            "t3QRZXHDPh2hwU46iQs2776kRuuWfwFp4dV", /* main-index: 36*/
-            "t3enhACRxi1ZD7e8ePomVGKn7wp7N9fFJ3r", /* main-index: 37*/
-            "t3PkLgT71TnF112nSwBToXsD77yNbx2gJJY", /* main-index: 38*/
-            "t3LQtHUDoe7ZhhvddRv4vnaoNAhCr2f4oFN", /* main-index: 39*/
-            "t3fNcdBUbycvbCtsD2n9q3LuxG7jVPvFB8L", /* main-index: 40*/
-            "t3dKojUU2EMjs28nHV84TvkVEUDu1M1FaEx", /* main-index: 41*/
-            "t3aKH6NiWN1ofGd8c19rZiqgYpkJ3n679ME", /* main-index: 42*/
-            "t3MEXDF9Wsi63KwpPuQdD6by32Mw2bNTbEa", /* main-index: 43*/
-            "t3WDhPfik343yNmPTqtkZAoQZeqA83K7Y3f", /* main-index: 44*/
-            "t3PSn5TbMMAEw7Eu36DYctFezRzpX1hzf3M", /* main-index: 45*/
-            "t3R3Y5vnBLrEn8L6wFjPjBLnxSUQsKnmFpv", /* main-index: 46*/
-            "t3Pcm737EsVkGTbhsu2NekKtJeG92mvYyoN", /* main-index: 47*/
+            "3D7R2atx1hZ1iban4fjnvS9sPa8wDnUJny", // "t3Vz22vK5z2LcKEdg16Yv4FFneEL1zg9ojd", /* main-index: 0* /a9147d46a730d31f97b1930d3368a967c309bd4d136a87
+            "3KTYAaC4cQySgtAoeev4eVD7fvdR5R6ikq", // "t3cL9AucCajm3HXDhb5jBnJK2vapVoXsop3", /* main-index: 1* /a914c2e5af6fa0864ceb5ab93d88813772cebe04c62087
+            "3NyKkfSiQFa1z8hWRWMr9cdjxy9xEBPdfY", // "t3fqvkzrrNaMcamkQMwAyHRjfDdM2xQvDTR", /* main-index: 2* /a914e9702e27abc52e441fd979544ecab6b20d045c3287
+            "3Aox9E2tE8eiTR7tXxtyhqGf2uqZRmXUCT", // "t3TgZ9ZT2CTSK44AnUPi6qeNaHa2eC7pUyF", /* main-index: 3* /a9146408e3247aa526d95f5033e9fd3840e1b40a8bff87
+            "39x9c3zFhadwhELBzZEGnJzURfc11kdrVQ", // "t3SpkcPQPfuRYHsP5vz3Pv86PgKo5m9KVmx", /* main-index: 4* /a9145a9da85a1d09ce65c1ac4d3c161ffb5dcad03ba087
+            "3F1To4wHRFuM1BMwpFMNabayBnsQzBmHzH", // "t3Xt4oQMRPagwbpQqkgAViQgtST4VoSWR6S", /* main-index: 5* /a9149216b7f7c14f101778b2c2cbe24a529adf6bd60887
+            "3J6akDeo8RXwP9tuM8SMJdacAfhiooME3L", // "t3ayBkZ4w6kKXynwoHZFUSSgXRKtogTXNgb", /* main-index: 6* /a914b3f6fa632d7303d689678700b0502aa1a927296b87
+            "3HkhB5VSbhEJWjuhUhjErzwqWPGWeYn47d", // "t3adJBQuaa21u7NxbR8YMzp3km3TbSZ4MGB", /* main-index: 7* /a914b0340671addc94974003b231a450453382e31ada87
+            "32ByLDAYU7QNqzomDqTXLoyMuKtLBs95qs", // "t3K4aLYagSSBySdrfAGGeUd5H9z5Qvz88t2", /* main-index: 8* /a9140579e6348f398c5e78611da902ca457885cda23987
+            "38gBsGfeiv8j8HX9cxtYHdeCQKVvPQnf7Q", // "t3RYnsc5nhEvKiva3ZPhfRSk7eyh1CrA6Rk", /* main-index: 9* /a9144ca0c3d712bf1ea99f87a2d36482699ef1d392d187
+            "3C1TK9Qtb7ZrnjBCBPNLwXjcx3qkHqqPtY", // "t3Ut4KUq2ZSMTPNE67pBU5LqYCi2q36KpXQ", /* main-index: 10* /a914712df07c5176f8438e0cfdde89f38fffb903b63387
+            "3GubMqWYvmQrNei7z65jpEUo7UwYdy4FB2", // "t3ZnCNAvgu6CSyHm1vWtrx3aiN98dSAGpnD", /* main-index: 11* /a914a6eaca126b366ff3db16b66a90d313bd8c38df6a87
+            "3NJYbqdWUDwAVR8YDXrp2UJZ4gVKdHrptb", // "t3fB9cB3eSYim64BS9xfwAHQUKLgQQroBDG", /* main-index: 12* /a914e21aaec105793af8f35a0e2ae9b0630407f47faa87
+            "3L4xeyxEki8vkXEHUDqpdHicSf4YrzQk9S", // "t3cwZfKNNj2vXMAHBQeewm6pXhKFdhk18kD", /* main-index: 13* /a914c998afe1705849c9f8892249be32c03497aefdce87
+            "3FkCuQ7XuVjNXDYUYSTCpS8bKBBoAGgDNa", // "t3YcoujXfspWy7rbNUsGKxFEWZqNstGpeG4", /* main-index: 14* /a9149a2c2cbabfe310f09ae4d86d51a78f85573d5b6a87
+            "3JUKC1JYdn4znDRZVeZpcssabuRV81KrYu", // "t3bLvCLigc6rbNrUTS5NwkgyVrZcZumTRa4", /* main-index: 15* /a914b81324ed42304e59551e235ebab3a989bdb660bf87
+            "3D3gWEhi5VBVWuqa7ukC8PQemduZTmv9gW", // "t3VvHWa7r3oy67YtU4LZKGCWa2J6eGHvShi", /* main-index: 16* /a9147c91e899227cb5c6a608b982e0a2d7db86901d0687
+            "3MNYWm6tf81WkZsZoEk7s8QwFLeq6j3gVC", // "t3eF9X6X2dSo7MCvTjfZEzwWrVzquxRLNeY", /* main-index: 17* /a914d7e425c9d068408dda1d3a37caf2bc055f6104f987
+            "3MzbNcXdeepY7WnWjYeUQtMvWtLUMwK8Ht", // "t3esCNwwmcyc8i9qQfyTbYhTqmYXZ9AwK3X", /* main-index: 18* /a914deb5825db797ce6a81b41b83abb047f415af241287
+            "34C8MnHQFhrRXLHyxyaGc6PjVTpRi4aDAW", // "t3M4jN7hYE2e27yLsuQPPjuVek81WV3VbBj", /* main-index: 19* /a9141b71afad5f3185b75457bdab3fabc297b56694e287
+            "3PPuxHmx8sknCYYVnx7jihEFGJCkmTqaMf", // "t3gGWxdC67CYNoBbPjNvrrWLAWxPqZLxrVY", /* main-index: 20* /a914ee16b664f7bca502cad662e5e36bad071423951987
+            "33aueUYWY4pB37RK6wh4i6e9G6PuzJxsmK", // "t3LTWeoxeWPbmdkUD3NWBquk4WkazhFBmvU", /* main-index: 21* /a91414c884180589f6d0fdc7c400181afb1bb10c9fe487
+            "36CiKBiyiCkeqwPqMxujmb8bsQnAMUEatG", // "t3P5KKX97gXYFSaSjJPiruQEX84yF5z3Tjq", /* main-index: 22* /a914317e483f60b1b9029b232b206aada27c68735d2187
+            "3NAr3SnNtv3QAZzBYtGuAsJk14V2JmXX6B", // "t3f3T3nCWsEpzmD35VK62JgQfFig74dV8C9", /* main-index: 23* /a914e0a5ea1340cc6b1d6a82c06c0a9c60b9898b6ae987
+            "38yCnaar9Ft9eTxBA8LwntxoU7EMVGMB61", // "t3Rqonuzz7afkF7156ZA4vi4iimRSEn41hj", /* main-index: 24* /a9144fd89a8512e083965f79d92eb1019f850acee5ec87
+            "3NRx5Q8k1dSJKjocFDzEU7Cf9YXyXB7Hev", // "t3fJZ5jYsyxDtvNrWBeoMbvJaQCj4JJgbgX", /* main-index: 25* /a914e38130c1e0add9fb67365f61c6978f2c1891a5d387
+            "36uzfn7bQnTfnYS23gG9xGUhkAWCyWJdXn", // "t3Pnbg7XjP7FGPBUuz75H65aczphHgkpoJW", /* main-index: 26* /a914394cfd39873191560f79a1ec8d62e001d9f364bc87
+            "3DmiPtY4kQYUvUp3KDwtDeEEKHJDyD2vUU", // "t3WeKQDxCijL5X7rwFem1MTL9ZwVJkUFhpF", /* main-index: 27* /a9148484f50714d67b89f5305ef037ea7bc7d1e002ff87
+            "3FGeNNbxKnhHZq9AqNm7KXVSYU8M9t9vEp", // "t3Y9FNi26J7UtAUC4moaETLbMo8KS1Be6ME", /* main-index: 28* /a91494f5c8f356a24300ed4d822bee76a7bc19551c9c87
+            "3HVpL1TC4eMN26Loi8kp89wUNFv854vd6g", // "t3aNRLLsL2y8xcjPheZZwFy3Pcv7CsTwBec", /* main-index: 29* /a914ad63c1f0c6ad2b5227261a191dc34852f8411a0387
+            "3PXcEFWc7BCZZeGEXRbmtNQJ6J3dPf7CXf", // "t3gQDEavk5VzAAHK8TrQu2BWDLxEiF1unBm", /* main-index: 30* /a914ef8b3e86db855eb48bcf0b7585a90b6b9ece75c087
+            "38jNkNXsV9UG5tosF833ApvXDJEESZqM3q", // "t3Rbykhx1TUFrgXrmBYrAJe2STxRKFL7G9r", /* main-index: 31* /a9144d3b188f065e03b85d4fefcc7f4ede7bf0c271b787
+            "3Hhu4F3VQnnY2NSZHaNgVDsnLzVbUwfFhS", // "t3aaW4aTdP7a8d1VTE1Bod2yhbeggHgMajR", /* main-index: 32* /a914afacb22d73c1f6da72fb06c3a9fdbf5d8ec42d8187
+            "3FN7AEgmGQkLegz29a5Lsrg8ifVucmRTrG", // "t3YEiAa6uEjXwFL2v5ztU1fn3yKgzMQqNyo", /* main-index: 33* /a91495fe3a8328f7ea678710aca7496b8908a2c5860987
+            "3P9NU9Xk44pAdHJKiVe5FhNhLZPoYCYvR3", // "t3g1yUUwt2PbmDvMDevTCPWUcbDatL2iQGP", /* main-index: 34* /a914eb569b42848d5ebcefd047215a0fd446aa5725b787
+            "3LWunKPxaWUoJtxJiBsUWkkcu4HrRF67vW", // "t3dPWnep6YqGPuY1CecgbeZrY9iUwH8Yd4z", /* main-index: 35* /a914ce811a7457b9f4553af120e553bc8ddd8bb33ce987
+            "37YxWwoFihvLsR3pUSCyyHeWfFKbC1v8Ms", // "t3QRZXHDPh2hwU46iQs2776kRuuWfwFp4dV", /* main-index: 36* /a914404a954619f431f1f4c6c1e8156caa13c5d3d03c87
+            "3Mv69s1pjgmcX15kTNxN8WgCh9vHPm1qos", // "t3enhACRxi1ZD7e8ePomVGKn7wp7N9fFJ3r", /* main-index: 37* /a914dddb7433536ad23ef1495d3398da9c70e65935c187
+            "36sjg7gsVTTQQPjYzkegQ47BsKBX8Du2sS", // "t3PkLgT71TnF112nSwBToXsD77yNbx2gJJY", /* main-index: 38* /a91438dfa4066f0032c86024bb5899adfa167c80189c87
+            "33YHH8offnn77HajVVFoemhSv31mAheAnm", // "t3LQtHUDoe7ZhhvddRv4vnaoNAhCr2f4oFN", /* main-index: 39* /a9141449535d5cb388b318343ca7a7fb1764a69f0ecd87
+            "3NW1cr4U1J8zcFpK6MLhuXp31TYQZ7Ez5m", // "t3fNcdBUbycvbCtsD2n9q3LuxG7jVPvFB8L", /* main-index: 40* /a914e445cfa944b6f2bdacefbda904a81d5fdd26d77f87
+            "3LTCj93tG2xGRVjPYhFLnwPKDZhvYcB1P8", // "t3dKojUU2EMjs28nHV84TvkVEUDu1M1FaEx", /* main-index: 41* /a914cdcd95aa6892db5fc849ac15804d2b9dd035a3b787
+            "3HSg63JNPh24fz5i4j3Sb2ada66xxymJds", // "t3aKH6NiWN1ofGd8c19rZiqgYpkJ3n679ME", /* main-index: 42* /a914accba16ec3b9fa60ca3143419c81e9fc4217d05a87
+            "34MvCujNuPJSjJmVxyp5xns7mhjwkJ4s4E", // "t3MEXDF9Wsi63KwpPuQdD6by32Mw2bNTbEa", /* main-index: 43* /a9141d4bb379ddd4043ae86c8b96e7183784f9eddf4987
+            "3DM6PLJc4jGNn8LZuTwS2zJeQAy3A483ho", // "t3WDhPfik343yNmPTqtkZAoQZeqA83K7Y3f", /* main-index: 44* /a9147fdcea2e77715232b15ab63e49fc30076ce80ffc87
+            "36aB58BDNqTLWbr99njVkSZ5BLdSDJ4aAv", // "t3PSn5TbMMAEw7Eu36DYctFezRzpX1hzf3M", /* main-index: 45* /a914358d5a7f5e2a687eeba360bb473f3c38890674f387
+            "38Aw5bN3NXTBXh43KJac3Xh3BpDnZmztnb", // "t3R3Y5vnBLrEn8L6wFjPjBLnxSUQsKnmFpv", /* main-index: 46* /a91447185bab99466b849d774faa2edfa983bd37741487
+            "36kA6hh6uAxfrxeyxbZXcWnPPbwwyBb2KA", // "t3Pcm737EsVkGTbhsu2NekKtJeG92mvYyoN", /* main-index: 47* /a9143770b379a58159d907f6b83868ca65e1a450753a87
 //            "t3PZ9PPcLzgL57XRSG5ND4WNBC9UTFb8DXv", /* main-index: 48*/
 //            "t3L1WgcyQ95vtpSgjHfgANHyVYvffJZ9iGb", /* main-index: 49*/
 //            "t3JtoXqsv3FuS7SznYCd5pZJGU9di15mdd7", /* main-index: 50*/
@@ -166,7 +167,6 @@ public:
         consensus.nMajorityRejectBlockOutdated = 75;
         consensus.nMajorityWindow = 400;
         consensus.powLimit = uint256S("0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.fPowAllowMinDifficultyBlocks = true;
         pchMessageStart[0] = 0xfb;
         pchMessageStart[1] = 0x2a;
         pchMessageStart[2] = 0x3d;
@@ -189,7 +189,8 @@ public:
         base58Prefixes[EXT_SECRET_KEY]     = {0x04, 0x35, 0x83, 0x94};
 
         base58Prefixes[ZCPAYMENT_ADDRRESS] = std::vector<unsigned char>(1,49);
-
+        // guarantees the first 4 characters, when base58 encoded, are "ZiVt"
+        base58Prefixes[ZCVIEWING_KEY]      = {0xA8,0xAC,0x0C};
         base58Prefixes[ZCSPENDING_KEY]     = std::vector<unsigned char>(1,6);
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));

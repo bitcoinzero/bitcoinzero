@@ -434,10 +434,10 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Dogecoin is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "BitcoinZero is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Dogecoin is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "BitcoinZero is downloading blocks...");
 
     static unsigned int nTransactionsUpdatedLast;
 
@@ -731,11 +731,40 @@ UniValue estimatepriority(const UniValue& params, bool fHelp)
 
 /* ************************************************************************** */
 /* Merge mining.  */
+UniValue auxpowToJSON(const CAuxPow& auxpow)
+{
+    UniValue result(UniValue::VOBJ);
+    
+    result.push_back(Pair("tx", HexStr(auxpow.coinbaseTx)));
+
+    UniValue branch(UniValue::VARR);	
+    BOOST_FOREACH (const uint256& node, auxpow.vMerkleBranch)
+        branch.push_back(node.GetHex());
+    result.push_back(Pair("merklebranch", branch));
+
+    UniValue chainbranch(UniValue::VARR);
+    BOOST_FOREACH (const uint256& node, auxpow.vChainMerkleBranch)
+        chainbranch.push_back(node.GetHex());
+    result.push_back(Pair("chainmerklebranch", chainbranch));
+
+    CDataStream ssParent(SER_NETWORK, PROTOCOL_VERSION);
+    ssParent << auxpow.parentBlock;
+    const std::string strHex = HexStr(ssParent.begin(), ssParent.end());
+    result.push_back(Pair("parentblock", strHex));
+    
+    CDataStream ssSub(SER_NETWORK, PROTOCOL_VERSION);
+    ssSub << auxpow.vSubTree;
+    const std::string strHex2 = HexStr(ssSub.begin(), ssSub.end());  
+    result.push_back(Pair("vSubTree", strHex2));
+    
+    return result;
+}
+
 
 #ifdef ENABLE_WALLET
 UniValue getauxblockbip22(const UniValue& params, bool fHelp)
 {
-    if (fHelp || (params.size() != 0 && params.size() != 7))
+    if (fHelp || (!(params.size() < 4) && params.size() != 6))
         throw std::runtime_error(
             "getauxblock (hash auxpow)\n"
             "\nCreate or submit a merge-mined block.\n"
@@ -783,7 +812,7 @@ UniValue getauxblockbip22(const UniValue& params, bool fHelp)
     static std::vector<CBlockTemplate*> vNewBlockTemplate;
 
     /* Create a new block?  */
-    if (params.size() == 0)
+    if (params.size() < 2)
     {
         static unsigned nTransactionsUpdatedLast;
         static const CBlockIndex* pindexPrev = NULL;
@@ -822,6 +851,7 @@ UniValue getauxblockbip22(const UniValue& params, bool fHelp)
             CBlock* pblock = &pblocktemplate->block;
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
             pblock->nVersion.SetAuxpow(true);
+            pblock->nVersion.SetAuxpow2(true);
             pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 
             // Save
@@ -837,7 +867,7 @@ UniValue getauxblockbip22(const UniValue& params, bool fHelp)
         target.SetCompact(block.nBits, &fNegative, &fOverflow);
         if (fNegative || fOverflow || target == 0)
             throw std::runtime_error("invalid difficulty bits in block");
-
+        
         UniValue result(UniValue::VOBJ);
         result.push_back(Pair("hash", block.GetHash().GetHex()));
         result.push_back(Pair("chainid", block.nVersion.GetChainId()));
@@ -846,15 +876,23 @@ UniValue getauxblockbip22(const UniValue& params, bool fHelp)
         result.push_back(Pair("bits", strprintf("%08x", block.nBits)));
         result.push_back(Pair("height", static_cast<int64_t> (pindexPrev->nHeight + 1)));
         result.push_back(Pair("target", HexStr(BEGIN(target), END(target))));
-
+        
+        
+        if (params.size() == 1) {
+            //subchainid prepare for extension
+            UniValue subchainid(UniValue::VARR);
+            int nSubtreeLayer = std::stoi(params[0].get_str());
+            for (int i = 0; i < nSubtreeLayer; i++) {
+                subchainid.push_back((uint64_t)Params().GetConsensus().nSubAuxpowChainId);
+            }
+            result.push_back(Pair("subchainid", subchainid));
+        } 
+      
         return result;
     }
 
     /* Submit a block instead.  Note that this need not lock cs_main,
        since ProcessBlockFound below locks it instead.  */
-
-    assert(params.size() == 7);
-
     uint256 hash;
     hash.SetHex(params[0].get_str());
 
@@ -862,45 +900,95 @@ UniValue getauxblockbip22(const UniValue& params, bool fHelp)
     if (mit == mapNewBlock.end())
         throw JSONRPCError(RPC_INVALID_PARAMETER, "block hash unknown");
     CBlock& block = *mit->second;
+    
+    if (params.size() == 2) {
+        
+        const std::vector<unsigned char> vchAuxPow = ParseHex(params[1].get_str());
+        CDataStream ss(vchAuxPow, SER_GETHASH, PROTOCOL_VERSION);
+            
+        CClassicAuxPow classicPow;
+        ss >> classicPow;
+      
+        CAuxPow pow;
+       
+        pow.coinbaseTx = ParseHex(classicPow.ToHex());
+        pow.vMerkleBranch = classicPow.vMerkleBranch;
+        pow.vChainMerkleBranch = classicPow.vChainMerkleBranch;
+        pow.parentBlock = classicPow.parentBlock;
 
-    const std::vector<unsigned char> vchheader = ParseHex(params[1].get_str());
-    CDataStream ssheader(vchheader, SER_GETHASH, PROTOCOL_VERSION);
-    CPureBlockHeader bitcoinHeader; 
-    ssheader >> bitcoinHeader;    
-    
-    const std::vector<unsigned char> vchtx = ParseHex(params[2].get_str());
-    
-    UniValue txBranch = params[3].get_array();
-    std::vector<uint256> vMerkleBranch;
-    for (size_t idx = 0; idx < txBranch.size(); idx++) {
-        uint256 tmpHash;
-        tmpHash.SetHex(txBranch[idx].get_str());
-        vMerkleBranch.push_back(tmpHash);
+        block.SetAuxpow(new CAuxPow(pow));
+        assert(block.GetHash() == hash);
+        
+    }
+    else if (params.size() == 3)
+    {
+        const std::vector<unsigned char> vchAuxPow = ParseHex(params[1].get_str());
+        CDataStream ss(vchAuxPow, SER_GETHASH, PROTOCOL_VERSION);
+            
+        CClassicAuxPow classicPow;
+        ss >> classicPow;
+      
+        const std::vector<unsigned char> vchAuxPowSupplement = ParseHex(params[2].get_str());
+        CDataStream sss(vchAuxPowSupplement, SER_GETHASH, PROTOCOL_VERSION);
+        
+        std::vector<CAuxPowSupplement> vAuxPowSupplement;
+        sss >> vAuxPowSupplement;
+        
+        CAuxPow pow;
+        
+        pow.coinbaseTx = ParseHex(classicPow.ToHex());
+        pow.vMerkleBranch = classicPow.vMerkleBranch;
+        pow.vChainMerkleBranch = classicPow.vChainMerkleBranch;
+        pow.parentBlock = classicPow.parentBlock;
+        pow.vSubTree = vAuxPowSupplement;
+
+        block.SetAuxpow(new CAuxPow(pow));
+        assert(block.GetHash() == hash);
+    }
+    else 
+    {
+        assert(params.size() == 6);
+
+        const std::vector<unsigned char> vchheader = ParseHex(params[1].get_str());
+        CDataStream ssheader(vchheader, SER_GETHASH, PROTOCOL_VERSION);
+        CPureBlockHeader bitcoinHeader; 
+        ssheader >> bitcoinHeader;    
+        
+        const std::vector<unsigned char> vchtx = ParseHex(params[2].get_str());
+        
+        UniValue txBranch = params[3].get_array();
+        std::vector<uint256> vMerkleBranch;
+        for (size_t idx = 0; idx < txBranch.size(); idx++) {
+            uint256 tmpHash;
+            tmpHash.SetHex(txBranch[idx].get_str());
+            vMerkleBranch.push_back(tmpHash);
+        }
+        
+        UniValue chainBranch = params[4].get_array();
+        std::vector<uint256> vChainMerkleBranch;
+        for (size_t idx = 0; idx < chainBranch.size(); idx++) {
+            uint256 tmpHash;
+            tmpHash.SetHex(chainBranch[idx].get_str());
+            vChainMerkleBranch.push_back(tmpHash);
+        }
+        
+        const std::vector<unsigned char> vchAuxPowSupplement = ParseHex(params[5].get_str());
+        CDataStream sss(vchAuxPowSupplement, SER_GETHASH, PROTOCOL_VERSION);
+        
+        std::vector<CAuxPowSupplement> vAuxPowSupplement;
+        sss >> vAuxPowSupplement;
+        
+        CAuxPow pow;
+        pow.coinbaseTx = vchtx;
+        pow.vMerkleBranch = vMerkleBranch;
+        pow.vChainMerkleBranch = vChainMerkleBranch;
+        pow.parentBlock = bitcoinHeader;
+        pow.vSubTree = vAuxPowSupplement;
+        
+        block.SetAuxpow(new CAuxPow(pow));
+        assert(block.GetHash() == hash);
     }
     
-    int nIndex = params[4].get_int();
-    
-    UniValue chainBranch = params[5].get_array();
-    std::vector<uint256> vChainMerkleBranch;
-    for (size_t idx = 0; idx < chainBranch.size(); idx++) {
-        uint256 tmpHash;
-        tmpHash.SetHex(chainBranch[idx].get_str());
-        vChainMerkleBranch.push_back(tmpHash);
-    }
-    
-    int nChainIndex = params[6].get_int();
-    
-    CAuxPow pow;
-    pow.coinbaseTx = vchtx;
-    pow.vMerkleBranch = vMerkleBranch;
-    pow.nIndex = nIndex;
-    pow.vChainMerkleBranch = vChainMerkleBranch;
-    pow.nChainIndex = nChainIndex;
-    pow.parentBlock = bitcoinHeader;
-
-    block.SetAuxpow(new CAuxPow(pow));
-    assert(block.GetHash() == hash);
-
     // This is a straight cut & paste job from submitblock()
     bool fBlockPresent = false;
     {
@@ -942,7 +1030,7 @@ UniValue getauxblock(const UniValue& params, bool fHelp)
     UniValue response = getauxblockbip22(params, fHelp);
 
     // this is a request for a new blocktemplate: return response
-    if (params.size() == 0)
+    if (params.size() < 2)
         return response;
 
     // this is a new block submission: return bool

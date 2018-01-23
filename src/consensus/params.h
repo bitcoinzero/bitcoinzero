@@ -27,7 +27,6 @@ struct Params {
     
     /** Proof of work parameters */
     uint256 powLimit;
-    bool fPowAllowMinDifficultyBlocks;
     int64_t nPowAveragingWindow;
     int64_t nPowMaxAdjustDown;
     int64_t nPowMaxAdjustUp;
@@ -38,6 +37,7 @@ struct Params {
 
 	/** Auxpow parameters */
     int16_t nAuxpowChainId;
+    int32_t nSubAuxpowChainId;
 	};
 } // namespace Consensus
 

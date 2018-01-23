@@ -16,6 +16,8 @@
 
 #include <boost/foreach.hpp>
 
+static const int SPROUT_VALUE_VERSION = 1001400;
+
 struct CDiskBlockPos
 {
     int nFile;
@@ -110,11 +112,11 @@ public:
 
     //! pointer to the index of some further predecessor of this block
     CBlockIndex* pskip;
-	
-	//! pointer to the AuxPoW header, if this block has one
+
+    //! pointer to the AuxPoW header, if this block has one
     boost::shared_ptr<CAuxPow> pauxpow;
     
-	//! height of the entry in the chain. The genesis block has height 0
+    //! height of the entry in the chain. The genesis block has height 0
     int nHeight;
 
     //! Which # file this block is stored in (blk?????.dat)
@@ -147,9 +149,16 @@ public:
     //! (memory only) The anchor for the tree state up to the end of this block
     uint256 hashAnchorEnd;
 
-	uint256 hashBlockPoW;
-    
-	//! block header
+    //! Change in value held by the Sprout circuit over this block.
+    //! Will be boost::none for older blocks on old nodes until a reindex has taken place.
+    boost::optional<CAmount> nSproutValue;
+
+    //! (memory only) Total value held by the Sprout circuit up to and including this block.
+    //! Will be boost::none for on old nodes until a reindex has taken place.
+    //! Will be boost::none if nChainTx is zero.
+    boost::optional<CAmount> nChainSproutValue;
+
+    //! block header
     CBlockVersion nVersion;
     uint256 hashMerkleRoot;
     unsigned int nTime;
@@ -164,7 +173,7 @@ public:
         phashBlock = NULL;
         pprev = NULL;
         pskip = NULL;
-	    pauxpow.reset();
+        pauxpow.reset();
         nHeight = 0;
         nFile = 0;
         nDataPos = 0;
@@ -176,13 +185,14 @@ public:
         hashAnchor = uint256();
         hashAnchorEnd = uint256();
         nSequenceId = 0;
+        nSproutValue = boost::none;
+        nChainSproutValue = boost::none;
 
         nVersion       = 0;
         hashMerkleRoot = uint256();
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
-        hashBlockPoW   = uint256();		
     }
 
     CBlockIndex()
@@ -190,7 +200,7 @@ public:
         SetNull();
     }
 
-    CBlockIndex(const CBlockHeader& block) 
+    CBlockIndex(const CBlockHeader& block)
     {
         SetNull();
 
@@ -199,7 +209,6 @@ public:
         nTime          = block.nTime;
         nBits          = block.nBits;
         nNonce         = block.nNonce;
-        hashBlockPoW   = block.GetPoWHash();
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -325,8 +334,7 @@ public:
         READWRITE(hashMerkleRoot);
         READWRITE(nTime);
         READWRITE(nBits);
-        READWRITE(nNonce);        
-        READWRITE(hashBlockPoW);
+        READWRITE(nNonce);
         if (this->nVersion.IsAuxpow()) {
             if (ser_action.ForRead())
                 pauxpow.reset(new CAuxPow());
@@ -334,7 +342,13 @@ public:
             READWRITE(*pauxpow);
         } else if (ser_action.ForRead())
             pauxpow.reset();
-	}
+
+        // Only read/write nSproutValue if the client version used to create
+        // this index was storing them.
+        if ((nType & SER_DISK) && (nVersion >= SPROUT_VALUE_VERSION)) {
+            READWRITE(nSproutValue);
+        }
+    }
 
     uint256 GetBlockHash() const
     {

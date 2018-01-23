@@ -881,9 +881,12 @@ bool CheckTransactionWithoutProofVerification(const CTransaction& tx, CValidatio
 
     // Size limits
     BOOST_STATIC_ASSERT(MAX_BLOCK_SIZE > MAX_TX_SIZE); // sanity
-    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > MAX_TX_SIZE)
-        return state.DoS(100, error("CheckTransaction(): size limits failed"),
-                         REJECT_INVALID, "bad-txns-oversize");
+    if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > MAX_TX_SIZE) {
+        // genesis tx
+        if (tx.GetHash() != uint256S("f9c9435675ba5ab75156ade5c979ec515d0fc08e0b8ccadf17b7d8fc57b4762a"))
+            return state.DoS(100, error("CheckTransaction(): size limits failed"),
+                             REJECT_INVALID, "bad-txns-oversize");
+    }
 
     // Check for negative or overflow output values
     CAmount nValueOut = 0;
@@ -2873,6 +2876,15 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
 {
     pindexNew->nTx = block.vtx.size();
     pindexNew->nChainTx = 0;
+    CAmount sproutValue = 0;
+    for (auto tx : block.vtx) {
+        for (auto js : tx.vjoinsplit) {
+            sproutValue += js.vpub_old;
+            sproutValue -= js.vpub_new;
+        }
+    }
+    pindexNew->nSproutValue = sproutValue;
+    pindexNew->nChainSproutValue = boost::none;
     pindexNew->nFile = pos.nFile;
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;
@@ -2890,6 +2902,15 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
             CBlockIndex *pindex = queue.front();
             queue.pop_front();
             pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
+            if (pindex->pprev) {
+                if (pindex->pprev->nChainSproutValue && pindex->nSproutValue) {
+                    pindex->nChainSproutValue = *pindex->pprev->nChainSproutValue + *pindex->nSproutValue;
+                } else {
+                    pindex->nChainSproutValue = boost::none;
+                }
+            } else {
+                pindex->nChainSproutValue = pindex->nSproutValue;
+            }
             {
                 LOCK(cs_nBlockSequenceId);
                 pindex->nSequenceId = nBlockSequenceId++;
@@ -3098,12 +3119,17 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     assert(pindexPrev);
 
     int nHeight = pindexPrev->nHeight+1;
-
-    // Check proof of work
+    
+    // Check nBits
     if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
-        return state.DoS(100, error("%s: incorrect proof of work", __func__),
+        return state.DoS(100, error("%s: incorrect nBits", __func__),
                          REJECT_INVALID, "bad-diffbits");
 
+    // Check nNonce(nHeight)
+    if (block.nNonce != nHeight)
+        return state.Invalid(error("%s: block's nNonce(nHeight) is incorrect", __func__),
+                             REJECT_INVALID, "bad-nNonce(nHeight)");
+                         
     // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())
         return state.Invalid(error("%s: block's timestamp is too early", __func__),
@@ -3557,12 +3583,19 @@ bool static LoadBlockIndexDB()
             if (pindex->pprev) {
                 if (pindex->pprev->nChainTx) {
                     pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
+                    if (pindex->pprev->nChainSproutValue && pindex->nSproutValue) {
+                        pindex->nChainSproutValue = *pindex->pprev->nChainSproutValue + *pindex->nSproutValue;
+                    } else {
+                        pindex->nChainSproutValue = boost::none;
+                    }
                 } else {
                     pindex->nChainTx = 0;
+                    pindex->nChainSproutValue = boost::none;
                     mapBlocksUnlinked.insert(std::make_pair(pindex->pprev, pindex));
                 }
             } else {
                 pindex->nChainTx = pindex->nTx;
+                pindex->nChainSproutValue = pindex->nSproutValue;
             }
         }
         if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->nChainTx || pindex->pprev == NULL))

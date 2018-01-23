@@ -307,19 +307,22 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 pindexNew->nTime          = diskindex.nTime;
                 pindexNew->nBits          = diskindex.nBits;
                 pindexNew->nNonce         = diskindex.nNonce;
-                pindexNew->hashBlockPoW   = diskindex.hashBlockPoW;
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
                 pindexNew->pauxpow        = diskindex.pauxpow;
-
-                if (pindexNew->nVersion.IsAuxpow()) {
+                pindexNew->nSproutValue   = diskindex.nSproutValue;
+                
+                if (pindexNew->nVersion.IsAuxpow2()) {
+                    if (!diskindex.pauxpow->check2(diskindex.GetBlockHash(), Params().GetConsensus())) {
+                        return error("LoadBlockIndex(): CheckProofOfWork2 failed: %s", pindexNew->ToString());
+                    }
+                } else if (pindexNew->nVersion.IsAuxpow()) {
                     if (!diskindex.pauxpow->check(diskindex.GetBlockHash(), Params().GetConsensus())) {
                         return error("LoadBlockIndex(): CheckProofOfWork failed: %s", pindexNew->ToString());
                     }
                 } else {
-                    if (!CheckProofOfWork(pindexNew->hashBlockPoW, pindexNew->nBits, Params().GetConsensus()))
-                        return error("LoadBlockIndex(): CheckProofOfWork failed: %s", pindexNew->ToString());
-                    // return error("LoadBlockIndex(): no auxpow in nVersion: %s", pindexNew->ToString());
+                    if (!diskindex.hashPrev.IsNull())
+                        return error("LoadBlockIndex(): no auxpow in nVersion: %s", pindexNew->ToString());
                 }
                 
                 pcursor->Next();
