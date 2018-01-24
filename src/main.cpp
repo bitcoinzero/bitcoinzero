@@ -883,7 +883,7 @@ bool CheckTransactionWithoutProofVerification(const CTransaction& tx, CValidatio
     BOOST_STATIC_ASSERT(MAX_BLOCK_SIZE > MAX_TX_SIZE); // sanity
     if (::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) > MAX_TX_SIZE) {
         // genesis tx
-        if (tx.GetHash() != uint256S("f9c9435675ba5ab75156ade5c979ec515d0fc08e0b8ccadf17b7d8fc57b4762a"))
+        if (tx.GetHash() != uint256S("17d7ba6524a13ccc83e0d758e8ff83009c23a01ef5159d5ab6bf9fb36bd56571"))
             return state.DoS(100, error("CheckTransaction(): size limits failed"),
                              REJECT_INVALID, "bad-txns-oversize");
     }

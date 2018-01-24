@@ -232,41 +232,24 @@ int printStats(bool mining)
 
 int printMiningStatus(bool mining)
 {
-#ifdef ENABLE_MINING
     // Number of lines that are always displayed
     int lines = 1;
 
     if (mining) {
         auto nThreads = miningTimer.threadCount();
         if (nThreads > 0) {
-            std::cout << strprintf(_("You are mining with the %s solver on %d threads."),
-                                   GetArg("-equihashsolver", "default"), nThreads) << std::endl;
+            std::cout << _("Using RPC getauxblock for mining") << std::endl;
         } else {
-            bool fvNodesEmpty;
-            {
-                LOCK(cs_vNodes);
-                fvNodesEmpty = vNodes.empty();
-            }
-            if (fvNodesEmpty) {
-                std::cout << _("Mining is paused while waiting for connections.") << std::endl;
-            } else if (IsInitialBlockDownload()) {
-                std::cout << _("Mining is paused while downloading blocks.") << std::endl;
-            } else {
-                std::cout << _("Mining is paused (a JoinSplit may be in progress).") << std::endl;
-            }
+            std::cout << _("Using RPC getauxblock for mining") << std::endl;
         }
         lines++;
     } else {
-        std::cout << _("You are currently not mining.") << std::endl;
-        std::cout << _("To enable mining, add 'gen=1' to your zcash.conf and restart.") << std::endl;
-        lines += 2;
+        std::cout << _("Using RPC getauxblock for mining") << std::endl;
+        lines++;
     }
     std::cout << std::endl;
 
     return lines;
-#else // ENABLE_MINING
-    return 0;
-#endif // !ENABLE_MINING
 }
 
 int printMetrics(size_t cols, bool mining)
@@ -413,7 +396,7 @@ int printInitMessage()
 void ThreadShowMetricsScreen()
 {
     // Make this thread recognisable as the metrics screen thread
-    RenameThread("zcash-metrics-screen");
+    RenameThread("bitcoinzero-metrics-screen");
 
     // Determine whether we should render a persistent UI or rolling metrics
     bool isTTY = isatty(STDOUT_FILENO);
@@ -429,7 +412,7 @@ void ThreadShowMetricsScreen()
         std::cout << std::endl;
 
         // Thank you text
-        std::cout << _("Thank you for running a Zcash node!") << std::endl;
+        std::cout << _("Thank you for running a Bitcoin Zero node!") << std::endl;
         std::cout << _("You're helping to strengthen the network and contributing to a social good :)") << std::endl;
 
         // Privacy notice text
