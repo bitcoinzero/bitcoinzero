@@ -79,7 +79,17 @@ public:
         
         vFixedSeeds.clear();
         vSeeds.clear();
-
+        vSeeds.push_back(CDNSSeedData("seed1.bitcoinzero.io", "seed1.bitcoinzero.io"));
+        vSeeds.push_back(CDNSSeedData("seed2.bitcoinzero.io", "seed2.bitcoinzero.io"));
+        vSeeds.push_back(CDNSSeedData("seed3.bitcoinzero.io", "seed3.bitcoinzero.io"));
+        vSeeds.push_back(CDNSSeedData("seed4.bitcoinzero.io", "seed4.bitcoinzero.io"));
+        vSeeds.push_back(CDNSSeedData("seed5.bitcoinzero.io", "seed5.bitcoinzero.io"));
+        vSeeds.push_back(CDNSSeedData("seed6.bitcoinzero.io", "seed6.bitcoinzero.io"));
+        vSeeds.push_back(CDNSSeedData("seed7.bitcoinzero.io", "seed7.bitcoinzero.io"));
+        vSeeds.push_back(CDNSSeedData("seed8.bitcoinzero.io", "seed8.bitcoinzero.io"));
+        vSeeds.push_back(CDNSSeedData("seed9.bitcoinzero.io", "seed9.bitcoinzero.io"));
+        vSeeds.push_back(CDNSSeedData("seed10.bitcoinzero.io", "seed10.bitcoinzero.io"));
+        
         base58Prefixes[PUBKEY_ADDRESS]     = std::vector<unsigned char>(1,0);
         base58Prefixes[SCRIPT_ADDRESS]     = std::vector<unsigned char>(1,5);
         base58Prefixes[SECRET_KEY]         = std::vector<unsigned char>(1,128);
