@@ -12,7 +12,7 @@ Return merged mining infomation including the hash of the block waiting for PoW.
 ### call *getauxblock* with two parameters
 Send the hash of the block waiting for PoW and the serialized classic *CAuxPow* object will submit this block with the PoW.
 ## extra feature
-Bitcoinzero also supports fractal aux work merkle tree. A detailed introduction is upcoming. The basic idea is simple. We can extend one slot to be the root for a subtree. In bitcoinzero, a class called *CAuxPowSupplement* is defined to represent a subtree. Of course, we can also have subtrees of subtrees.
+Bitcoinzero also supports fractal aux work merkle tree. A detailed introduction is upcoming, maybe. The basic idea is simple. We can extend a slot to be the root for a subtree. In bitcoinzero, a class called *CAuxPowSupplement* is defined to represent a subtree, actually, a sub-branch links the AuxPOW block to the subtree root. The slot of the AuxPOW block in the subtree is calculated in the classic way, with a subchain id. Then, corresponding merkle_size and merkle_nonce are appended to that root, no magic bytes needed. Next, hash that subtree root with the merkle_size and merkle_nonce to get a *protected subtree root*. Finally, the classic *CAuxPow* will do the rest, namely, link the *protected subtree root* to the coinbase of the parent block. Of course, we can also have subtrees of subtrees.
 ### call *getauxblock* with one parameter
 Send the maximum number of nested subtrees allowed. Return corresponding merged mining infomation.
 ### call *getauxblock* with three parameters
