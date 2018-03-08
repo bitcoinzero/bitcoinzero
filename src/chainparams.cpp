@@ -35,7 +35,7 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         strNetworkID = "main";
-        strCurrencyUnits = "BTZ";
+        strCurrencyUnits = "BCZ";
         consensus.fCoinbaseMustBeProtected = true;
         consensus.nSubsidyHalvingInterval = 840000;
         consensus.nMajorityEnforceBlockUpgrade = 750;
