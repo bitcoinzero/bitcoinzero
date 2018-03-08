@@ -20,16 +20,16 @@ Send the hash of the block waiting for PoW and a serialized classic *CAuxPow* ob
 ### call *getauxblock* with six parameters
 This is mainly for testing. The classic *CAuxPow* object includes some unneeded parts. We can break it down and only send wanted parts to form the PoW. This will submit the block with the PoW.
 # How To Redeem
-Bitcoin Zero takes the snapshot of Bitcoin chainstate at height 478558. As a result, people who have BTC at Bitcoin 478558 have the same amout of BTZ now. This section introduces how can we redeem that part of BTZ.
+Bitcoin Zero takes the snapshot of Bitcoin chainstate at height 478558. As a result, people who have BTC at Bitcoin 478558 have the same amout of BCZ now. This section introduces how can we redeem that part of BCZ.
 ## step 1 : call RPC *z_getnewaddress*
-This will give you a new shielded address where informations like balance are shielded from other people. You are going to redeem those BTZ to this address.
+This will give you a new shielded address where informations like balance are shielded from other people. You are going to redeem those BCZ to this address.
 ### note:
-In Zcash, coinbase can only be sent to a shielded address in order to increase privacy for all participants on a systemic level. For the same reason, in Bitcoin Zero, coinbase and BTZ from the snapshot can only be sent to a shielded address.
+In Zcash, coinbase can only be sent to a shielded address in order to increase privacy for all participants on a systemic level. For the same reason, in Bitcoin Zero, coinbase and BCZ from the snapshot can only be sent to a shielded address.
 ## step 2 : call RPC *importprivkey*
 Import your private keys related to your BTC at height 478558. It will return corresponding addresses. You can check the balance with RPC *listunspent* afterwards.
 ### note:
-The snapshot and the Bitcoin chainstate at height 478558 use the same pubkeys. So the same private keys will give us access to corresponding BTZ. Details of this RPC can be found here https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_calls_list.
+The snapshot and the Bitcoin chainstate at height 478558 use the same pubkeys. So the same private keys will give us access to corresponding BCZ. Details of this RPC can be found here https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_calls_list.
 ## step 3 : call RPC *z_shieldcoinbase*
-*z_shieldcoinbase* takes two parameter. First, the address you get from *importprivkey*. Second, the address you get from *z_getnewaddress*. That's it. This will send BTZ from the snapshot to your new shielded address. After waiting about a minute, you can check the transaction by call RPC *z_getoperationresult*.
+*z_shieldcoinbase* takes two parameter. First, the address you get from *importprivkey*. Second, the address you get from *z_getnewaddress*. That's it. This will send BCZ from the snapshot to your new shielded address. After waiting about a minute, you can check the transaction by call RPC *z_getoperationresult*.
 ### note: 
 Details of this RPC can be found here https://github.com/zcash/zcash/blob/master/doc/payment-api.md.
