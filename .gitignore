@@ -113,3 +113,9 @@ libzcashconsensus.pc
 
 contrib/debian/files
 contrib/debian/substvars
+
+GTAGS
+GRTAGS
+GPATH
+NppGTags.cfg
+src/gtest/test_foundersreward.cpp

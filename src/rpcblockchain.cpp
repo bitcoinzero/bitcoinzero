@@ -173,7 +173,7 @@ UniValue getblockcount(const UniValue& params, bool fHelp)
     if (fHelp || params.size() != 0)
         throw runtime_error(
             "getblockcount\n"
-            "\nReturns the number of blocks in the longest block chain.\n"
+            "\nReturns the number of blocks in the best valid block chain.\n"
             "\nResult:\n"
             "n    (numeric) The current block count\n"
             "\nExamples:\n"
@@ -225,10 +225,9 @@ UniValue mempoolToJSON(bool fVerbose = false)
     {
         LOCK(mempool.cs);
         UniValue o(UniValue::VOBJ);
-        BOOST_FOREACH(const PAIRTYPE(uint256, CTxMemPoolEntry)& entry, mempool.mapTx)
+        BOOST_FOREACH(const CTxMemPoolEntry& e, mempool.mapTx)
         {
-            const uint256& hash = entry.first;
-            const CTxMemPoolEntry& e = entry.second;
+            const uint256& hash = e.GetTx().GetHash();
             UniValue info(UniValue::VOBJ);
             info.push_back(Pair("size", (int)e.GetTxSize()));
             info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
@@ -390,97 +389,107 @@ UniValue getblockheader(const UniValue& params, bool fHelp)
     return blockheaderToJSON(pblockindex);
 }
 
-UniValue getblock(const UniValue& params, bool fHelp)
-{
-    if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error(
-            "getblock \"hash|height\" ( verbose )\n"
-            "\nIf verbose is false, returns a string that is serialized, hex-encoded data for block 'hash|height'.\n"
-            "If verbose is true, returns an Object with information about block <hash|height>.\n"
+UniValue getblock(const UniValue& params, bool fHelp) {
+    if (fHelp || params.size() < 1 ||
+        params.size() > 2) {
+        throw std::runtime_error(
+            "getblock \"blockhash\" ( verbosity ) \n"
+            "\nIf verbosity is 0, returns a string that is serialized, hex-encoded data for block 'hash'.\n"
+            "If verbosity is 1, returns an Object with information about block <hash>.\n"
+            "If verbosity is 2, returns an Object with information about block <hash> and information about each transaction. \n"
             "\nArguments:\n"
-            "1. \"hash|height\"     (string, required) The block hash or height\n"
-            "2. verbose           (boolean, optional, default=true) true for a json object, false for the hex encoded data\n"
-            "\nResult (for verbose = true):\n"
+            "1. \"blockhash\"          (string, required) The block hash\n"
+            "2. verbosity              (numeric, optional, default=1) 0 for hex encoded data, 1 for a json object, and 2 for json object with transaction data\n"
+            "\nResult (for verbosity = 0):\n"
+            "\"data\"             (string) A string that is serialized, "
+            "hex-encoded data for block 'hash'.\n"            
+            "\nResult (for verbosity = 1):\n"
             "{\n"
-            "  \"hash\" : \"hash\",       (string) the block hash (same as provided hash)\n"
-            "  \"confirmations\" : n,   (numeric) The number of confirmations, or -1 if the block is not on the main chain\n"
+            "  \"hash\" : \"hash\",     (string) the block hash (same as "
+            "provided)\n"
+            "  \"confirmations\" : n,   (numeric) The number of confirmations, "
+            "or -1 if the block is not on the main chain\n"
             "  \"size\" : n,            (numeric) The block size\n"
-            "  \"height\" : n,          (numeric) The block height or index (same as provided height)\n"
+            "  \"height\" : n,          (numeric) The block height or index\n"
             "  \"version\" : n,         (numeric) The block version\n"
+            "  \"versionHex\" : \"00000000\", (string) The block version "
+            "formatted in hexadecimal\n"
             "  \"merkleroot\" : \"xxxx\", (string) The merkle root\n"
             "  \"tx\" : [               (array of string) The transaction ids\n"
             "     \"transactionid\"     (string) The transaction id\n"
             "     ,...\n"
             "  ],\n"
-            "  \"time\" : ttt,          (numeric) The block time in seconds since epoch (Jan 1 1970 GMT)\n"
+            "  \"time\" : ttt,          (numeric) The block time in seconds "
+            "since epoch (Jan 1 1970 GMT)\n"
+            "  \"mediantime\" : ttt,    (numeric) The median block time in "
+            "seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"nonce\" : n,           (numeric) The nonce\n"
-            "  \"bits\" : \"1d00ffff\",   (string) The bits\n"
+            "  \"bits\" : \"1d00ffff\", (string) The bits\n"
             "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
-            "  \"previousblockhash\" : \"hash\",  (string) The hash of the previous block\n"
-            "  \"nextblockhash\" : \"hash\"       (string) The hash of the next block\n"
+            "  \"chainwork\" : \"xxxx\",  (string) Expected number of hashes "
+            "required to produce the chain up to this block (in hex)\n"
+            "  \"previousblockhash\" : \"hash\",  (string) The hash of the "
+            "previous block\n"
+            "  \"nextblockhash\" : \"hash\"       (string) The hash of the "
+            "next block\n"
             "}\n"
-            "\nResult (for verbose=false):\n"
-            "\"data\"             (string) A string that is serialized, hex-encoded data for block 'hash'.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-            + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-            + HelpExampleCli("getblock", "12800")
-            + HelpExampleRpc("getblock", "12800")
-        );
+            "\nResult (for verbosity = 2):\n"
+            "{\n"
+                "  ...,                     Same output as verbosity = 1.\n"
+                    "  \"tx\" : [               (array of Objects) The transactions in the format of the getrawtransaction RPC. Different from verbosity = 1 \"tx\" result.\n"
+                        "         ,...\n"
+                    "  ],\n"
+                "  ,...                     Same output as verbosity = 1.\n"
+            "}\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d"
+                                       "214adbda81d7e2a3dd146f6ed09\"") +
+            HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d"
+                                       "214adbda81d7e2a3dd146f6ed09\""));
+    }
 
     LOCK(cs_main);
 
     std::string strHash = params[0].get_str();
-
-    // If height is supplied, find the hash
-    if (strHash.size() < (2 * sizeof(uint256))) {
-        // std::stoi allows characters, whereas we want to be strict
-        regex r("[[:digit:]]+");
-        if (!regex_match(strHash, r)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid block height parameter");
-        }
-
-        int nHeight = -1;
-        try {
-            nHeight = std::stoi(strHash);
-        }
-        catch (const std::exception &e) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid block height parameter");
-        }
-
-        if (nHeight < 0 || nHeight > chainActive.Height()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
-        }
-        strHash = chainActive[nHeight]->GetBlockHash().GetHex();
-    }
-
     uint256 hash(uint256S(strHash));
 
-    bool fVerbose = true;
-    if (params.size() > 1)
-        fVerbose = params[1].get_bool();
+    int verbosity = 1;
+    if (!params[1].isNull()) {
+        if(params[1].isNum())
+            verbosity = params[1].get_int();
+        else
+            verbosity = params[1].get_bool() ? 1 : 0;
+    }
 
-    if (mapBlockIndex.count(hash) == 0)
+    if (mapBlockIndex.count(hash) == 0) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+    }
 
     CBlock block;
-    CBlockIndex* pblockindex = mapBlockIndex[hash];
+    CBlockIndex *pblockindex = mapBlockIndex[hash];
 
-    if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) && pblockindex->nTx > 0)
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Block not available (pruned data)");
+    if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) &&
+        pblockindex->nTx > 0) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Block not available (pruned data)");
+    }
 
-    if(!ReadBlockFromDisk(block, pblockindex))
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
+    if (!ReadBlockFromDisk(block, pblockindex)) {
+        // Block not found on disk. This could be because we have the block
+        // header in our index but don't have the block (for example if a
+        // non-whitelisted node sends us an unrequested long chain of valid
+        // blocks, we add the headers to our index, but don't accept the block).
+        throw JSONRPCError(RPC_MISC_ERROR, "Block not found on disk");
+    }
 
-    if (!fVerbose)
-    {
-        CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
+    if (verbosity <= 0) {
+        CDataStream ssBlock(SER_NETWORK,
+                            PROTOCOL_VERSION);
         ssBlock << block;
         std::string strHex = HexStr(ssBlock.begin(), ssBlock.end());
         return strHex;
     }
 
-    return blockToJSON(block, pblockindex);
+    return blockToJSON(block, pblockindex, verbosity >= 2);
 }
 
 UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
@@ -530,7 +539,7 @@ UniValue gettxout(const UniValue& params, bool fHelp)
             "\nArguments:\n"
             "1. \"txid\"       (string, required) The transaction id\n"
             "2. n              (numeric, required) vout value\n"
-            "3. includemempool  (boolean, optional) Whether to included the mem pool\n"
+            "3. includemempool  (boolean, optional) Whether to include the mempool\n"
             "\nResult:\n"
             "{\n"
             "  \"bestblock\" : \"hash\",    (string) the block hash\n"
@@ -659,12 +668,45 @@ static UniValue SoftForkDesc(const std::string &name, int version, CBlockIndex* 
     return rv;
 }
 
+static UniValue NetworkUpgradeDesc(const Consensus::Params& consensusParams, Consensus::UpgradeIndex idx, int height)
+{
+    UniValue rv(UniValue::VOBJ);
+    auto upgrade = NetworkUpgradeInfo[idx];
+    rv.push_back(Pair("name", upgrade.strName));
+    rv.push_back(Pair("activationheight", consensusParams.vUpgrades[idx].nActivationHeight));
+    switch (NetworkUpgradeState(height, consensusParams, idx)) {
+        case UPGRADE_DISABLED: rv.push_back(Pair("status", "disabled")); break;
+        case UPGRADE_PENDING: rv.push_back(Pair("status", "pending")); break;
+        case UPGRADE_ACTIVE: rv.push_back(Pair("status", "active")); break;
+    }
+    rv.push_back(Pair("info", upgrade.strInfo));
+    return rv;
+}
+
+void NetworkUpgradeDescPushBack(
+    UniValue& networkUpgrades,
+    const Consensus::Params& consensusParams,
+    Consensus::UpgradeIndex idx,
+    int height)
+{
+    // Network upgrades with an activation height of NO_ACTIVATION_HEIGHT are
+    // hidden. This is used when network upgrade implementations are merged
+    // without specifying the activation height.
+    if (consensusParams.vUpgrades[idx].nActivationHeight != Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT) {
+        networkUpgrades.push_back(Pair(
+            HexInt(NetworkUpgradeInfo[idx].nBranchId),
+            NetworkUpgradeDesc(consensusParams, idx, height)));
+    }
+}
+
 UniValue getblockchaininfo(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
             "getblockchaininfo\n"
             "Returns an object containing various state info regarding block chain processing.\n"
+            "\nNote that when the chain tip is at the last block before a network upgrade activation,\n"
+            "consensus.chaintip != consensus.nextblock.\n"
             "\nResult:\n"
             "{\n"
             "  \"chain\": \"xxxx\",        (string) current network name as defined in BIP70 (main, test, regtest)\n"
@@ -687,7 +729,19 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
             "        },\n"
             "        \"reject\": { ... }      (object) progress toward rejecting pre-softfork blocks (same fields as \"enforce\")\n"
             "     }, ...\n"
-            "  ]\n"
+            "  ],\n"
+            "  \"upgrades\": {                (object) status of network upgrades\n"
+            "     \"xxxx\" : {                (string) branch ID of the upgrade\n"
+            "        \"name\": \"xxxx\",        (string) name of upgrade\n"
+            "        \"activationheight\": xxxxxx,  (numeric) block height of activation\n"
+            "        \"status\": \"xxxx\",      (string) status of upgrade\n"
+            "        \"info\": \"xxxx\",        (string) additional information about upgrade\n"
+            "     }, ...\n"
+            "  },\n"
+            "  \"consensus\": {               (object) branch IDs of the current and upcoming consensus rules\n"
+            "     \"chaintip\": \"xxxxxxxx\",   (string) branch ID used to validate the current chain tip\n"
+            "     \"nextblock\": \"xxxxxxxx\"   (string) branch ID that the next block will be validated under\n"
+            "  }\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("getblockchaininfo", "")
@@ -721,6 +775,17 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
     softforks.push_back(SoftForkDesc("bip66", 3, tip, consensusParams));
     softforks.push_back(SoftForkDesc("bip65", 4, tip, consensusParams));
     obj.push_back(Pair("softforks",             softforks));
+
+    UniValue upgrades(UniValue::VOBJ);
+    for (int i = Consensus::UPGRADE_OVERWINTER; i < Consensus::MAX_NETWORK_UPGRADES; i++) {
+        NetworkUpgradeDescPushBack(upgrades, consensusParams, Consensus::UpgradeIndex(i), tip->nHeight);
+    }
+    obj.push_back(Pair("upgrades", upgrades));
+
+    UniValue consensus(UniValue::VOBJ);
+    consensus.push_back(Pair("chaintip", HexInt(CurrentEpochBranchId(tip->nHeight, consensusParams))));
+    consensus.push_back(Pair("nextblock", HexInt(CurrentEpochBranchId(tip->nHeight + 1, consensusParams))));
+    obj.push_back(Pair("consensus", consensus));
 
     if (fPruneMode)
     {
