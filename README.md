@@ -2,7 +2,31 @@
 Bitcoin Zero is forked from Zcash. Here is an detailed introduction of Bitcoin Zero:
 https://github.com/bitcoinzero/doc/blob/master/bitcoinzero.pdf
 # How To Start
-Quite like Zcash, clone it, run ./zcutil/build.sh, then it will be built. If you already have fetched Zcash parameter files, you do NOT need to do it again. Otherwise, run ./zcutil/fetch-params.sh. Basically, https://github.com/zcash/zcash/wiki/1.0-User-Guide is a good guide for Bitcoin Zero too. The only difference is, like stated on that detaild introduction, instead of synchronizing the whole Bitcoin blockchain, a genesis block needs to be downloaded. You can find one at https://github.com/bitcoinzero/genesis. ~/.bitcoinzero is the default data file path. For example, once you put a corresponding blk00000.dat under ~/.bitcoinzero/testnet3/blocks, you can then run the zcashd on testnet with an additional flag -reindex. Like this ./src/zcashd -testnet -reindex. You do NOT need to run with -reindex everytime, but you HAVE TO RUN WITH IT AT THE FIRST TIME. If you missed it at the first time, blk00000.dat will be modified and you will need to delete the folder testnet3 and then try it again with an unchanged blk00000.dat. I am sorry for the trouble and I am working on it. If you have a better idea, please.
+Basically, https://github.com/zcash/zcash/wiki/1.0-User-Guide is a good guide for Bitcoin Zero too.
+## Build
+Install dependencies on Ubuntu/Debian-based systems:
+```bash
+$ sudo apt-get install \
+      build-essential pkg-config libc6-dev m4 g++-multilib \
+      autoconf libtool ncurses-dev unzip git python python-zmq \
+      zlib1g-dev wget curl bsdmainutils automake
+```
+Clone and build:
+```bash
+$ git clone https://github.com/bitcoinzero/bitcoinzero.git
+$ cd zcash/
+$ ./zcutil/build.sh
+```
+## Zcash parameter
+If you already have fetched Zcash parameter files, you do NOT need to do it again. Otherwise,
+```bash
+$ ./zcutil/fetch-params.sh
+```
+## Bitcoin chainstate snapshot
+Like stated on that detaild introduction, instead of synchronizing the whole Bitcoin blockchain, a genesis block representing the snapshot needs to be downloaded. You can find one at https://github.com/bitcoinzero/genesis, for example, *blocks_for_low_memory.tar.gz*. Once you unzip *blocks_for_low_memory.tar.gz* under default file path: ~/.bitcoinzero (you probably need to make this folder first), you can then run Bitcoin Zero with:
+```bash
+$ ./src/zcashd
+```
 # How To Mine
 Bitcoinzero uses and only uses _merged mining_ for PoW. 
 ## classic merged mining
