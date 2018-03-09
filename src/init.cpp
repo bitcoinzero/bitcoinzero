@@ -602,6 +602,7 @@ void CleanupBlockRevFiles()
 void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
 {
     RenameThread("zcash-loadblk");
+
     // -reindex
     if (fReindex) {
         CImportingNow imp;
@@ -1359,6 +1360,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         {
             fReindex = true;
         }
+    }
+
+    // check for snapshot initialization
+    boost::filesystem::path indexDir = blocksDir / "index";
+    if (!boost::filesystem::exists(indexDir)) {
+        LogPrintf("BitcoinZero: snapshot initialization...\n");
+        fReindex = true;
     }
 
     // cache size calculations
