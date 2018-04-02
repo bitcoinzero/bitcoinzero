@@ -2253,8 +2253,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     uint256 hashPrevBlock = pindex->pprev == NULL ? uint256() : pindex->pprev->GetBlockHash();
     assert(hashPrevBlock == view.GetBestBlock());
 
-    // Special case for the genesis block, skipping connection of its transactions
-    // (its coinbase is unspendable)
+    // Special case for the genesis block
     if (block.GetHash() == chainparams.GetConsensus().hashGenesisBlock) {
         if (!fJustCheck) {
             view.SetBestBlock(pindex->GetBlockHash());
@@ -2263,6 +2262,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             pindex->hashAnchor = tree.root();
             // The genesis block contained no JoinSplits
             pindex->hashAnchorEnd = pindex->hashAnchor;
+            CTxUndo undoDummy;
+            UpdateCoins(block.vtx[0], view, undoDummy, 0);
         }
         return true;
     }
