@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin Core developers
-// Copyright (c) 2014-2015 The Dogecoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -8,9 +7,17 @@
 
 #include "arith_uint256.h"
 #include "chain.h"
+#include "chainparams.h"
 #include "primitives/block.h"
+#include "streams.h"
 #include "uint256.h"
 #include "util.h"
+
+#include "sodium.h"
+
+#ifdef ENABLE_RUST
+#include "librustzcash.h"
+#endif // ENABLE_RUST
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {

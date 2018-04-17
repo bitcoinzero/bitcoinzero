@@ -51,8 +51,8 @@ const std::string CLIENT_NAME("MagicBean");
 //! git will put "#define GIT_ARCHIVE 1" on the next line inside archives. 
 #define GIT_ARCHIVE 1
 #ifdef GIT_ARCHIVE
-#define GIT_COMMIT_ID "f3d2f9c501"
-#define GIT_COMMIT_DATE "Wed, 7 Mar 2018 09:58:01 +0800"
+#define GIT_COMMIT_ID "44573ec61a"
+#define GIT_COMMIT_DATE "Tue, 17 Apr 2018 11:25:54 +0800"
 #endif
 
 #define RENDER_BETA_STRING(num) "-beta" DO_STRINGIZE(num)

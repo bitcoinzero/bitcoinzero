@@ -8,34 +8,31 @@
 #
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.authproxy import JSONRPCException
-from test_framework.util import assert_equal, connect_nodes, \
-    connect_nodes_bi, sync_blocks, start_nodes, sync_blocks, sync_mempools, \
+from test_framework.util import assert_equal, \
+    connect_nodes_bi, sync_blocks, start_nodes, \
     wait_and_assert_operationid_status
 
 from decimal import Decimal
-import time
 
 class MempoolTxExpiryTest(BitcoinTestFramework):
 
     def setup_nodes(self):
-        return start_nodes(4, self.options.tmpdir, [["-nuparams=5ba81b19:205", "-txexpirydelta=4"]] * 4)
+        return start_nodes(4, self.options.tmpdir, [["-nuparams=5ba81b19:205", "-txexpirydelta=4", "-debug=mempool"]] * 4)
 
     # Test before, at, and after expiry block
     # TODO: Test case of dependent txs in reorgs
     # chain is at block height 199 when run_test executes
     def run_test(self):
-        alice = self.nodes[0].getnewaddress()
         z_alice = self.nodes[0].z_getnewaddress()
         bob = self.nodes[2].getnewaddress()
         z_bob = self.nodes[2].z_getnewaddress()
-        
+
         # When Overwinter not yet activated, no expiryheight in tx
         sapling_tx = self.nodes[0].sendtoaddress(bob, 0.01)
         rawtx = self.nodes[0].getrawtransaction(sapling_tx, 1)
         assert_equal(rawtx["overwintered"], False)
         assert("expiryheight" not in rawtx)
-        
+
         self.nodes[0].generate(6)
         self.sync_all()
 
