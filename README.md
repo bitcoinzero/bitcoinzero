@@ -14,7 +14,7 @@ $ sudo apt-get install \
 Clone and build:
 ```bash
 $ git clone https://github.com/bitcoinzero/bitcoinzero.git
-$ cd zcash/
+$ cd bitcoinzero/
 $ ./zcutil/build.sh
 ```
 ## Zcash parameter
@@ -23,7 +23,12 @@ If you already have fetched Zcash parameter files, you do NOT need to do it agai
 $ ./zcutil/fetch-params.sh
 ```
 ## Bitcoin chainstate snapshot
-Like stated on that detaild introduction, instead of synchronizing the whole Bitcoin blockchain, a genesis block representing the snapshot needs to be downloaded. You can find one at https://github.com/bitcoinzero/genesis, for example, *blocks_for_low_memory.tar.gz*. Once you unzip *blocks_for_low_memory.tar.gz* under default file path: ~/.bitcoinzero (you probably need to make this folder first), you can then run Bitcoin Zero with:
+Like stated on that detaild introduction, instead of synchronizing the whole Bitcoin blockchain, a genesis block representing the snapshot needs to be downloaded.
+```bash
+$ ./zcutil/fetch-snapshot.sh
+```
+OR, you can find one at https://github.com/bitcoinzero/genesis.
+## Run Bitcoin Zero
 ```bash
 $ ./src/zcashd
 ```
